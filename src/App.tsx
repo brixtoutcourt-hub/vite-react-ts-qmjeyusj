@@ -293,7 +293,7 @@ const useBoard = (target: number, settings: GameSettings, onStatsUpdate: (type: 
 
 // --- COMPONENTS ---
 
-// 1. BlockVisual (SVG COMPONENTS - HAUTE FIDELITÉ RECRÉÉE)
+// 1. BlockVisual (SVG COMPONENTS - HAUTE FIDELITÉ)
 
 interface BlockVisualProps {
   type: PlaceValue;
@@ -307,21 +307,25 @@ const BlockVisual: React.FC<BlockVisualProps> = ({ type, className, state = 'nor
   const isDragging = state === 'dragging';
   const isDisabled = state === 'disabled';
 
-  // Couleurs Officielles (Montessori)
+  // Standard Colors (Montessori Style)
   const colors = {
-    thousands: { fill: '#EF4444', side: '#B91C1C', top: '#FCA5A5', stroke: '#7F1D1D' }, // Rouge
-    hundreds:  { fill: '#22C55E', side: '#15803D', top: '#86EFAC', stroke: '#14532D' }, // Vert
-    tens:      { fill: '#3B82F6', side: '#1E40AF', top: '#93C5FD', stroke: '#1E3A8A' }, // Bleu
-    ones:      { fill: '#FACC15', side: '#CA8A04', top: '#FEF08A', stroke: '#854D0E' }, // Jaune
+    thousands: { fill: '#EF4444', side: '#B91C1C', top: '#FCA5A5', stroke: '#7F1D1D' }, // Red (1000)
+    hundreds:  { fill: '#22C55E', side: '#15803D', top: '#86EFAC', stroke: '#14532D' }, // Green (100)
+    tens:      { fill: '#3B82F6', side: '#1E40AF', top: '#93C5FD', stroke: '#1E3A8A' }, // Blue (10)
+    ones:      { fill: '#FACC15', side: '#CA8A04', top: '#FEF08A', stroke: '#854D0E' }, // Yellow (1)
   };
 
   const opacity = isGhost ? 0.4 : (isDragging ? 0.9 : 1);
-  const strokeWidth = isGhost ? 1.5 : 0.8; 
+  const strokeWidth = isGhost ? 2 : 1; 
   const strokeDash = isGhost ? "3 3" : "none";
   const fillOpacity = isGhost ? 0 : 1;
 
+  // Determine viewBox based on type to ensure optimal occupancy
+  // TENS uses a narrow viewBox to appear larger in the same container
+  const viewBox = type === 'TENS' ? "30 0 40 100" : "0 0 100 100";
+
   // Common SVG container
-  const SVGWrapper = ({ children, viewBox = "0 0 100 100" }: { children: React.ReactNode, viewBox?: string }) => (
+  const SVGWrapper = ({ children }: { children: React.ReactNode }) => (
     <svg viewBox={viewBox} className="w-full h-full overflow-visible" style={{ filter: isDragging ? 'drop-shadow(0px 8px 8px rgba(0,0,0,0.25))' : 'none' }}>
       <g strokeLinejoin="round" strokeLinecap="round" opacity={opacity}>
         {children}
@@ -344,35 +348,31 @@ const BlockVisual: React.FC<BlockVisualProps> = ({ type, className, state = 'nor
       <SVGWrapper>
         {type === 'ONES' && (
           <g>
-            {/* Cube 1 (Jaune) */}
-            {/* Face Supérieure */}
+            {/* Cube 1 (Yellow) */}
             <path d="M25 35 L40 20 L80 20 L65 35 Z" fill={colors.ones.top} fillOpacity={fillOpacity} stroke={colors.ones.stroke} strokeWidth={strokeWidth} strokeDasharray={strokeDash}/>
-            {/* Face Latérale Droite */}
             <path d="M65 35 L80 20 L80 60 L65 75 Z" fill={colors.ones.side} fillOpacity={fillOpacity} stroke={colors.ones.stroke} strokeWidth={strokeWidth} strokeDasharray={strokeDash}/>
-            {/* Face Avant */}
             <rect x="25" y="35" width="40" height="40" fill={colors.ones.fill} fillOpacity={fillOpacity} stroke={colors.ones.stroke} strokeWidth={strokeWidth} strokeDasharray={strokeDash}/>
           </g>
         )}
 
         {type === 'TENS' && (
           <g>
-            {/* Barre 10 (Bleue) - Verticale */}
-            {/* Face Supérieure */}
-            <path d="M35 15 L50 5 L65 5 L50 15 Z" fill={colors.tens.top} fillOpacity={fillOpacity} stroke={colors.tens.stroke} strokeWidth={strokeWidth} strokeDasharray={strokeDash}/>
-            {/* Face Latérale Droite */}
-            <path d="M50 15 L65 5 L65 85 L50 95 Z" fill={colors.tens.side} fillOpacity={fillOpacity} stroke={colors.tens.stroke} strokeWidth={strokeWidth} strokeDasharray={strokeDash}/>
-            {/* Face Avant */}
+            {/* Rod 10 (Blue) - Vertical */}
+            {/* Updated depth: narrower right face for a sleeker look */}
+            
+            {/* Top Face */}
+            <path d="M35 15 L45 8 L60 8 L50 15 Z" fill={colors.tens.top} fillOpacity={fillOpacity} stroke={colors.tens.stroke} strokeWidth={strokeWidth} strokeDasharray={strokeDash}/>
+            {/* Side Face */}
+            <path d="M50 15 L60 8 L60 88 L50 95 Z" fill={colors.tens.side} fillOpacity={fillOpacity} stroke={colors.tens.stroke} strokeWidth={strokeWidth} strokeDasharray={strokeDash}/>
+            {/* Front Face */}
             <rect x="35" y="15" width="15" height="80" fill={colors.tens.fill} fillOpacity={fillOpacity} stroke={colors.tens.stroke} strokeWidth={strokeWidth} strokeDasharray={strokeDash}/>
             
-            {/* Segments (9 traits pour faire 10 unités) */}
             {!isGhost && Array.from({length: 9}).map((_,i) => {
               const y = 15 + (i+1)*8;
               return (
                 <React.Fragment key={i}>
-                  {/* Trait Avant */}
                   <line x1="35" y1={y} x2="50" y2={y} stroke={colors.tens.stroke} strokeWidth="0.5" opacity="0.6"/>
-                  {/* Trait Côté (perspective) */}
-                  <line x1="50" y1={y} x2="65" y2={y-10} stroke={colors.tens.stroke} strokeWidth="0.5" opacity="0.6"/>
+                  <line x1="50" y1={y} x2="60" y2={y-7} stroke={colors.tens.stroke} strokeWidth="0.5" opacity="0.6"/>
                 </React.Fragment>
               )
             })}
@@ -381,22 +381,16 @@ const BlockVisual: React.FC<BlockVisualProps> = ({ type, className, state = 'nor
 
         {type === 'HUNDREDS' && (
           <g>
-            {/* Plaque 100 (Verte) - 10x10 Plat */}
-            {/* Face Supérieure (Fine) */}
+            {/* Plate 100 (Green) - Flat 10x10 */}
             <path d="M15 20 L20 15 L90 15 L85 20 Z" fill={colors.hundreds.top} fillOpacity={fillOpacity} stroke={colors.hundreds.stroke} strokeWidth={strokeWidth} strokeDasharray={strokeDash}/>
-            {/* Face Latérale Droite (Fine) */}
             <path d="M85 20 L90 15 L90 85 L85 90 Z" fill={colors.hundreds.side} fillOpacity={fillOpacity} stroke={colors.hundreds.stroke} strokeWidth={strokeWidth} strokeDasharray={strokeDash}/>
-            {/* Face Avant (Grand Carré) */}
             <rect x="15" y="20" width="70" height="70" fill={colors.hundreds.fill} fillOpacity={fillOpacity} stroke={colors.hundreds.stroke} strokeWidth={strokeWidth} strokeDasharray={strokeDash}/>
             
-            {/* Grille 10x10 */}
             {!isGhost && (
               <g stroke={colors.hundreds.stroke} strokeWidth="0.5" opacity="0.4">
                 {Array.from({length: 9}).map((_,i) => (
                   <React.Fragment key={i}>
-                    {/* Lignes Verticales */}
                     <line x1={15 + (i+1)*7} y1={20} x2={15 + (i+1)*7} y2={90} />
-                    {/* Lignes Horizontales */}
                     <line x1={15} y1={20 + (i+1)*7} x2={85} y2={20 + (i+1)*7} />
                   </React.Fragment>
                 ))}
@@ -407,35 +401,24 @@ const BlockVisual: React.FC<BlockVisualProps> = ({ type, className, state = 'nor
 
         {type === 'THOUSANDS' && (
           <g>
-            {/* Cube 1000 (Rouge) - 10x10x10 Massif */}
-            {/* Face Latérale Droite */}
+            {/* Cube 1000 (Red) - 10x10x10 Massif */}
             <path d="M70 30 L90 10 L90 70 L70 90 Z" fill={colors.thousands.side} fillOpacity={fillOpacity} stroke={colors.thousands.stroke} strokeWidth={strokeWidth} strokeDasharray={strokeDash}/>
-            {/* Face Supérieure */}
             <path d="M10 30 L30 10 L90 10 L70 30 Z" fill={colors.thousands.top} fillOpacity={fillOpacity} stroke={colors.thousands.stroke} strokeWidth={strokeWidth} strokeDasharray={strokeDash}/>
-            {/* Face Avant */}
             <rect x="10" y="30" width="60" height="60" fill={colors.thousands.fill} fillOpacity={fillOpacity} stroke={colors.thousands.stroke} strokeWidth={strokeWidth} strokeDasharray={strokeDash}/>
             
-            {/* Grilles Détaillées sur les 3 faces */}
             {!isGhost && (
               <g stroke={colors.thousands.stroke} strokeWidth="0.5" opacity="0.3">
                 {Array.from({length: 9}).map((_,i) => {
                   const step = (i+1)*6;
                   return (
                     <React.Fragment key={i}>
-                      {/* Grille Face Avant */}
                       <line x1={10 + step} y1={30} x2={10 + step} y2={90} />
                       <line x1={10} y1={30 + step} x2={70} y2={30 + step} />
                       
-                      {/* Grille Face Supérieure (Perspective) */}
-                      {/* Lignes X */}
                       <line x1={10 + (i+1)*2} y1={30 - (i+1)*2} x2={70 + (i+1)*2} y2={30 - (i+1)*2} />
-                      {/* Lignes Profondeur */}
                       <line x1={10 + step} y1={30} x2={30 + step} y2={10} />
 
-                      {/* Grille Face Latérale (Perspective) */}
-                      {/* Lignes Y */}
                       <line x1={70 + (i+1)*2} y1={30 - (i+1)*2} x2={70 + (i+1)*2} y2={90 - (i+1)*2} />
-                      {/* Lignes Profondeur */}
                       <line x1={70} y1={30 + step} x2={90} y2={10 + step} />
                     </React.Fragment>
                   );
@@ -464,6 +447,7 @@ const DraggableSource: React.FC<{ type: PlaceValue; label: string }> = ({ type, 
       className={cn("flex flex-col items-center gap-2 cursor-grab active:cursor-grabbing touch-none transition-opacity", isDragging ? 'opacity-30' : 'opacity-100')}
     >
       <div className="w-14 h-14 md:w-16 md:h-16 flex items-center justify-center bg-slate-50 rounded-lg border border-slate-100 p-2 hover:bg-slate-100 transition-colors">
+        {/* Enforce full size in palette, viewBox fix will handle the aspect ratio */}
         <BlockVisual type={type} className="w-full h-full" />
       </div>
       <span className="text-xs font-bold text-slate-600 select-none">{label}</span>
@@ -523,10 +507,11 @@ const DroppableColumn: React.FC<{
         type={type} 
         className={cn(
           "animate-in fade-in zoom-in duration-300",
-          type === 'THOUSANDS' ? "w-12 h-12" :
-          type === 'HUNDREDS' ? "w-12 h-12" :
-          type === 'TENS' ? "w-4 h-12" : // Barre plus fine pour qu'elle s'empile bien
-          "w-6 h-6"
+          // Sizing adjustments to restore visual hierarchy
+          type === 'THOUSANDS' ? "w-20 h-20" : // Massive
+          type === 'HUNDREDS' ? "w-20 h-20" :  // Massive
+          type === 'TENS' ? "h-16 w-auto" :    // Tall but lighter than thousands
+          "w-8 h-8"
         )} 
       />
     ));
@@ -1265,8 +1250,9 @@ const App: React.FC = () => {
         <footer className="shrink-0 z-30">
           <ResultDisplay total={total} decomposition={decomposition} target={currentMission.target} />
         </footer>
+
         <DragOverlay dropAnimation={{ duration: 250, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
-          {activeDragType ? <BlockVisual type={activeDragType} isOverlay /> : null}
+          {activeDragType ? <BlockVisual type={activeDragType} state="dragging" className={activeDragType === 'TENS' ? "h-24 w-auto" : "w-16 h-16"} /> : null}
         </DragOverlay>
       </div>
     </DndContext>
