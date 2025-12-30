@@ -564,8 +564,8 @@ const DroppableColumn: React.FC<{
 const PlaceValueChart: React.FC<{ counts: BoardCounts; hintState: HintState }> = ({ counts, hintState }) => {
   return (
     <div className="flex-1 bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden flex flex-row h-full">
-      <DroppableColumn type="THOUSANDS" title="MILLIERS" color="bg-green-50" count={counts.thousands} hintState={hintState} />
-      <DroppableColumn type="HUNDREDS" title="CENTAINES" color="bg-red-50" count={counts.hundreds} hintState={hintState} />
+      <DroppableColumn type="THOUSANDS" title="MILLIERS" color="bg-red-50" count={counts.thousands} hintState={hintState} />
+      <DroppableColumn type="HUNDREDS" title="CENTAINES" color="bg-green-50" count={counts.hundreds} hintState={hintState} />
       <DroppableColumn type="TENS" title="DIZAINES" color="bg-blue-50" count={counts.tens} hintState={hintState} />
       <DroppableColumn type="ONES" title="UNITÉS" color="bg-yellow-50" count={counts.ones} hintState={hintState} />
     </div>
